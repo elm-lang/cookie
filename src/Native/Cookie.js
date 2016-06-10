@@ -23,9 +23,10 @@ function set(options, key, value)
 			str += ';domain=' + options.domain._0;
 		}
 
-		if (typeof options.expires._0 !== 'undefined')
+		if (typeof options.maxAge._0 !== 'undefined')
 		{
-			str += ';expires=' + options.expires._0;
+			var expiration = Date.now() + options.maxAge._0;
+			str += ';expires=' + new Date(expiration);
 		}
 
 		if (options.secure)
