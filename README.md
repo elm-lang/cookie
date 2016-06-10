@@ -2,7 +2,7 @@
 
 Cookies are an ancient mistake of web browsers. They make a bunch of security problems quite easy, so consider this an expert library.
 
-If you are looking for a way to store information, you should take a look at [elm-lang/local-storage][local] or [elm-lang/session-storage][session] instead.
+If you are looking for a way to store information, you should take a look into [local-storage][local] or [session-storage][session] instead.
 
 [local]: http://package.elm-lang.org/packages/elm-lang/local-storage/latest
 [session]: http://package.elm-lang.org/packages/elm-lang/session-storage/latest
