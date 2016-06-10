@@ -2,31 +2,9 @@
 var _elm_lang$cookie$Native_Cookie = function() {
 
 
-function get(targetKey)
-{
-	return _elm_lang$core$Native_Scheduler.nativeBinding(function(callback)
-	{
-		var results = _elm_lang$core$Native_List.Nil;
-
-		var chunks = document.cookie.split('; ');
-		for (var i = 0; i < chunks.length; i++)
-		{
-			var chunk = chunks[i];
-			var eq = chunk.indexOf('=');
-			if (eq < 0)
-			{
-				eq = chunk.length;
-			}
-			var key = chunk.substr(0, eq);
-			if (key === targetKey)
-			{
-				results = _elm_lang$core$Native_List.Cons(chunk.substr(eq + 1), results);
-			}
-		}
-
-		callback(_elm_lang$core$Native_Scheduler.succeed(results));
-	});
-}
+var get = _elm_lang$core$Native_Scheduler.nativeBinding(function(callback) {
+	callback(_elm_lang$core$Native_Scheduler.succeed(document.cookie));
+});
 
 
 function set(options, key, value)
