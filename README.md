@@ -1,6 +1,6 @@
-# Cookies
+> **Notice!** We decided not to publish this library until we found a motivating use case that was not better addressed by using the `Set-Cookie` header on an HTTP response. Please open an issue describing your particular scenario if you think you found the motivating use case!
 
-> **Note:** We decided not to publish this library until we found a motivating use case that was not better addressed by using the `Set-Cookie` header on an HTTP response. Please open an issue describing your particular scenario if you think you found the motivating use case!
+# Cookies
 
 Cookies are an ancient mistake of web browsers. They make a bunch of security problems quite easy, so consider this an expert library.
 
