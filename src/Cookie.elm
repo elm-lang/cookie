@@ -1,6 +1,10 @@
-module Cookie exposing
-  ( set, Options, Error
-  )
+module Cookie
+    exposing
+        ( get
+        , set
+        , Options
+        , Error
+        )
 
 {-| Be sure to read the README first. There is some important background
 material there.
@@ -35,10 +39,18 @@ The important part is the `options` record. It is saying:
 You may want to make other choices to further restrict things.
 
 # The Documentation
-@docs set, Options, Error
+@docs get, set, Options, Error
 
 -}
 
+import Date exposing (Date)
+import Dict
+import List
+import Task exposing (Task)
+import String
+
+
+-- Local modules.
 
 import Cookie.LowLevel as LL
 
@@ -54,9 +66,106 @@ The `Error` type will tell you generally what kind of problem you have with
 a more specific error message to really pin things down.
 -}
 type Error
-  = BadKey String
-  | BadValue String
-  | InvalidPath String
+    = BadKey String
+    | BadValue String
+    | MalformedKeyValue String
+    | NonExistantKey String
+    | InvalidPath String
+
+
+{-| Get the value associated with `key`. So on a page with cookie
+"session=SESSIONVALUE;XSRF-TOKEN=XSRFTOKENTVALUE"
+
+    get "session"
+
+Will return
+
+    SESSIONVALUE
+
+-}
+get : String -> Task Error String
+get key =
+    let
+        rawCookieString =
+            LL.get
+
+        cookieDictTask =
+            rawCookieString
+                |> Task.map (String.split ";")
+                |> Task.map (List.map splitKeyValue)
+                |> Task.map (List.filter isNothing)
+                |> {- Use `Maybe.withDefault` to get rid of the `Maybe` type (we know that no
+                      `Nothing`s are left but the compiler doesn't).
+                   -}
+                   Task.map (List.map (Maybe.withDefault ( "", Ok "" )))
+                |> Task.map Dict.fromList
+    in
+        cookieDictTask
+            `Task.andThen`
+                \cookieDict ->
+                    let
+                        maybeResult =
+                            Dict.get key cookieDict
+                    in
+                        case maybeResult of
+                            Just result ->
+                                case result of
+                                    Ok value ->
+                                        Task.succeed value
+
+                                    Err error ->
+                                        Task.fail error
+
+                            Nothing ->
+                                Task.fail <| NonExistantKey key
+
+
+isNothing : Maybe a -> Bool
+isNothing arg =
+    case arg of
+        Just _ ->
+            True
+
+        Nothing ->
+            False
+
+
+{-| Split a `<cookie-name>=<cookie-value>` string into `Just (<cookie-name>, Just <cookie-value>)`.
+
+Shouldn't ever return `Nothing` (although the type system allows for this).
+
+If the `<cookie-name>=<cookie-value>` string is malformed and no `<cookie-value>` can be extracted,
+returns `Just (<cookie-name>, Nothing)`.
+-}
+splitKeyValue : String -> Maybe ( String, Result Error String )
+splitKeyValue s =
+    let
+        parts =
+            String.split "=" s
+
+        maybeName =
+            List.head parts
+
+        maybeValue =
+            Maybe.map (String.join "") (List.tail parts)
+    in
+        case maybeName of
+            Just name ->
+                case maybeValue of
+                    Just value ->
+                        Just ( name, Ok value )
+
+                    Nothing ->
+                        let
+                            error =
+                                MalformedKeyValue <|
+                                    "Cannot extract `<cookie-value>` from `<cookie-name>=<cookie-value>` pair: "
+                                        ++ s
+                        in
+                            Just ( name, Err error )
+
+            Nothing ->
+                Nothing
 
 
 {-| Set a key-value pair. So if you perform the following task on a page with
@@ -73,26 +182,29 @@ in it.
 -}
 set : Options -> String -> String -> Task Error ()
 set options key value =
-  let
-    chunks =
-      [ key ++ "=" ++ value
-      , format "domain" identity options.domain
-      , format "path" identity options.path
-      , format "max-age" toString options.maxAge
-      , if secure then ";secure" else ""
-      ]
-  in
-    LL.set (String.concat chunks)
+    let
+        chunks =
+            [ key ++ "=" ++ value
+            , format "domain" identity options.domain
+            , format "path" identity options.path
+            , format "max-age" toString options.maxAge
+            , if options.secure then
+                ";secure"
+              else
+                ""
+            ]
+    in
+        LL.set (String.concat chunks)
 
 
 format : String -> (a -> String) -> Maybe a -> String
 format prefix styler option =
-  case option of
-    Nothing ->
-      ""
+    case option of
+        Nothing ->
+            ""
 
-    Just value ->
-      ";" ++ prefix ++ "=" ++ styler value
+        Just value ->
+            ";" ++ prefix ++ "=" ++ styler value
 
 
 {-| When setting cookies, there are a few options you can tweak:
@@ -124,8 +236,8 @@ with `/`.
 
 -}
 type alias Options =
-  { maxAge : Maybe Date
-  , secure : Bool
-  , domain : Maybe String
-  , path : Maybe String
-  }
+    { maxAge : Maybe Date
+    , secure : Bool
+    , domain : Maybe String
+    , path : Maybe String
+    }

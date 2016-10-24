@@ -1,10 +1,16 @@
 module Cookie.LowLevel exposing (get, set)
+
 {-| Low-level bindings to the JavaScript API for cookies. Generally you want
 to use the `Cookie` module, not `Cookie.LowLevel`.
 
 # Get and Set Cookies
 @docs get, set
 -}
+
+import Task exposing (Task)
+
+
+-- Local modules.
 
 import Native.Cookie
 
@@ -20,7 +26,7 @@ information that is not better covered by [local-storage][local] and
 -}
 get : Task x String
 get =
-  Native.Cookie.get
+    Native.Cookie.get
 
 
 {-| Set a cookie using the low-level string API implemented by the browser.
@@ -33,4 +39,4 @@ is not covered by the `Cookie` module.
 -}
 set : String -> Task x ()
 set =
-  Native.Cookie.set
+    Native.Cookie.set

@@ -1,4 +1,5 @@
 
+// TODO: Substitute your package instead of `elm-lang/cookie` if necessary.
 var _elm_lang$cookie$Native_Cookie = function() {
 
 
