@@ -1,6 +1,9 @@
-module Cookie exposing
-  ( set, Options, Error
-  )
+module Cookie
+    exposing
+        ( set
+        , Options
+        , Error
+        )
 
 {-| Be sure to read the README first. There is some important background
 material there.
@@ -39,6 +42,12 @@ You may want to make other choices to further restrict things.
 
 -}
 
+import Date exposing (Date)
+import Task exposing (Task)
+import String
+
+
+-- Local modules.
 
 import Cookie.LowLevel as LL
 
@@ -54,9 +63,9 @@ The `Error` type will tell you generally what kind of problem you have with
 a more specific error message to really pin things down.
 -}
 type Error
-  = BadKey String
-  | BadValue String
-  | InvalidPath String
+    = BadKey String
+    | BadValue String
+    | InvalidPath String
 
 
 {-| Set a key-value pair. So if you perform the following task on a page with
@@ -73,26 +82,29 @@ in it.
 -}
 set : Options -> String -> String -> Task Error ()
 set options key value =
-  let
-    chunks =
-      [ key ++ "=" ++ value
-      , format "domain" identity options.domain
-      , format "path" identity options.path
-      , format "max-age" toString options.maxAge
-      , if secure then ";secure" else ""
-      ]
-  in
-    LL.set (String.concat chunks)
+    let
+        chunks =
+            [ key ++ "=" ++ value
+            , format "domain" identity options.domain
+            , format "path" identity options.path
+            , format "max-age" toString options.maxAge
+            , if options.secure then
+                ";secure"
+              else
+                ""
+            ]
+    in
+        LL.set (String.concat chunks)
 
 
 format : String -> (a -> String) -> Maybe a -> String
 format prefix styler option =
-  case option of
-    Nothing ->
-      ""
+    case option of
+        Nothing ->
+            ""
 
-    Just value ->
-      ";" ++ prefix ++ "=" ++ styler value
+        Just value ->
+            ";" ++ prefix ++ "=" ++ styler value
 
 
 {-| When setting cookies, there are a few options you can tweak:
@@ -124,8 +136,8 @@ with `/`.
 
 -}
 type alias Options =
-  { maxAge : Maybe Date
-  , secure : Bool
-  , domain : Maybe String
-  , path : Maybe String
-  }
+    { maxAge : Maybe Date
+    , secure : Bool
+    , domain : Maybe String
+    , path : Maybe String
+    }
